@@ -22,6 +22,8 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/api/project", get(get_project))
+        .route("/api/project", post(save_project))
+        .route("/api/project/task", post(add_task))
         .with_state(state);
 
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
@@ -51,8 +53,8 @@ struct AppStateInner {
     data_path: String,
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename = "camelCase")]
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 struct Task {
     id: u32,
     text: String,
@@ -61,7 +63,7 @@ struct Task {
 
 #[derive(Serialize, Deserialize)]
 struct Status {
-    id: u32,
+    id: String,
     title: String,
 }
 
@@ -72,12 +74,67 @@ struct Project {
 }
 
 async fn get_project(State(state): State<AppState>) -> Result<impl IntoResponse, String> {
-    let data = fs::read_to_string(state.data_path()).map_err(|e| {
+    let data = load_data_plain(state.data_path())?;
+    Ok((StatusCode::OK, [("content-type", "application/json")], data))
+}
+
+async fn save_project(
+    State(state): State<AppState>,
+    Json(data): Json<Project>,
+) -> Result<(), String> {
+    save_data(state.data_path(), &data)?;
+    println!("Saved data");
+    Ok(())
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct AddTask {
+    text: String,
+    status_id: String,
+}
+
+async fn add_task(
+    State(state): State<AppState>,
+    Json(payload): Json<AddTask>,
+) -> Result<Json<Task>, String> {
+    let mut data = load_data(state.data_path())?;
+    let id = data.tasks.iter().map(|task| task.id).max().unwrap_or(0) + 1;
+    let new_task = Task {
+        id,
+        text: payload.text,
+        status_id: payload.status_id,
+    };
+    data.tasks.push(new_task.clone());
+    save_data(state.data_path(), &data)?;
+    Ok(Json(new_task))
+}
+
+fn save_data(data_path: &str, data: &Project) -> Result<(), &'static str> {
+    let json = serde_json::to_string(&data).map_err(|e| {
         eprintln!("{e}");
-        "could not read data file"
+        "internal error"
     })?;
 
-    Ok((StatusCode::OK, [("content-type", "application/json")], data))
+    fs::write(data_path, json).map_err(|e| {
+        eprintln!("{e}");
+        "could not save data"
+    })
+}
+
+fn load_data_plain(data_path: &str) -> Result<String, &str> {
+    fs::read_to_string(data_path).map_err(|e| {
+        eprintln!("{e}");
+        "could not read data file"
+    })
+}
+
+fn load_data(data_path: &str) -> Result<Project, &str> {
+    let plain = load_data_plain(data_path)?;
+    serde_json::from_str(&plain).map_err(|e| {
+        eprintln!("{e}");
+        "could not read data file"
+    })
 }
 
 fn load_dotenv() {
