@@ -1,21 +1,14 @@
 import { useState } from "react";
-import { addTask } from "./service";
-import type { Task } from "./types";
+import { useProject } from "./ProjectContext";
 
-type AddTaskProps = {
-  onAddTask: (task: Task) => void;
-};
-
-export default function AddTask(props: AddTaskProps) {
+export default function AddTask() {
   const [taskName, setTaskName] = useState("");
+  const { addTask } = useProject();
 
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (taskName.length === 0) return;
-    addTask({ text: taskName, statusId: "todo" }).then((newTask) => {
-      setTaskName("");
-      props.onAddTask(newTask);
-    });
+    addTask(taskName, "todo").then(() => setTaskName(""));
   };
 
   return (
