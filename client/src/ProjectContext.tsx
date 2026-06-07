@@ -5,6 +5,7 @@ import {
   deleteTask as deleteTaskService,
   getProject,
   saveProject,
+  updateTask as updateTaskService,
 } from "./service";
 
 type ProjectContextType = {
@@ -12,6 +13,7 @@ type ProjectContextType = {
   addTask: (text: string, statusId: string) => Promise<void>;
   moveTask: (taskId: number, newStatusId: string) => void;
   deleteTask: (taskId: number) => Promise<void>;
+  updateTask: (taskId: number, text: string) => Promise<void>;
 };
 
 const ProjectContext = createContext<ProjectContextType | null>(null);
@@ -52,8 +54,19 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateTask = async (taskId: number, text: string) => {
+    const updated = await updateTaskService(taskId, { text });
+    setProject((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        tasks: prev.tasks.map((t) => (t.id === taskId ? updated : t)),
+      };
+    });
+  };
+
   return (
-    <ProjectContext.Provider value={{ project, addTask, moveTask, deleteTask }}>
+    <ProjectContext.Provider value={{ project, addTask, moveTask, deleteTask, updateTask }}>
       {children}
     </ProjectContext.Provider>
   );

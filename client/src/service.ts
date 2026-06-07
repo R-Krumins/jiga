@@ -16,6 +16,19 @@ export async function deleteTask(id: number): Promise<void> {
   if (!res.ok) throw new Error("Could not delete task");
 }
 
+export async function updateTask(
+  id: number,
+  fields: { text: string },
+): Promise<Task> {
+  const res = await fetch(`/api/project/task/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error("Could not update task");
+  return res.json();
+}
+
 export async function addTask(task: {
   text: string;
   statusId: string;
