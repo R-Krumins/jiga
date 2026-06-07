@@ -1,11 +1,17 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Project } from "./types";
-import { addTask as addTaskService, getProject, saveProject } from "./service";
+import {
+  addTask as addTaskService,
+  deleteTask as deleteTaskService,
+  getProject,
+  saveProject,
+} from "./service";
 
 type ProjectContextType = {
   project: Project;
   addTask: (text: string, statusId: string) => Promise<void>;
   moveTask: (taskId: number, newStatusId: string) => void;
+  deleteTask: (taskId: number) => Promise<void>;
 };
 
 const ProjectContext = createContext<ProjectContextType | null>(null);
@@ -38,8 +44,16 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const deleteTask = async (taskId: number) => {
+    await deleteTaskService(taskId);
+    setProject((prev) => {
+      if (!prev) return prev;
+      return { ...prev, tasks: prev.tasks.filter((t) => t.id !== taskId) };
+    });
+  };
+
   return (
-    <ProjectContext.Provider value={{ project, addTask, moveTask }}>
+    <ProjectContext.Provider value={{ project, addTask, moveTask, deleteTask }}>
       {children}
     </ProjectContext.Provider>
   );

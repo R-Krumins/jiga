@@ -11,6 +11,11 @@ export async function saveProject(project: Project) {
   if (!res.ok) throw new Error("Could not save project");
 }
 
+export async function deleteTask(id: number): Promise<void> {
+  const res = await fetch(`/api/project/task/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Could not delete task");
+}
+
 export async function addTask(task: {
   text: string;
   statusId: string;

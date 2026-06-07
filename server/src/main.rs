@@ -1,9 +1,9 @@
 use axum::{
     Json, Router,
-    extract::State,
+    extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::{get, post},
+    routing::{delete, get, post},
 };
 use serde::{Deserialize, Serialize};
 use std::{env, fs, sync::Arc};
@@ -24,6 +24,7 @@ async fn main() {
         .route("/api/project", get(get_project))
         .route("/api/project", post(save_project))
         .route("/api/project/task", post(add_task))
+        .route("/api/project/task/{id}", delete(delete_task))
         .with_state(state);
 
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
@@ -108,6 +109,14 @@ async fn add_task(
     data.tasks.push(new_task.clone());
     save_data(state.data_path(), &data)?;
     Ok(Json(new_task))
+}
+
+async fn delete_task(State(state): State<AppState>, Path(id): Path<u32>) -> Result<(), String> {
+    let mut data = load_data(state.data_path())?;
+    data.tasks.retain(|t| t.id != id);
+    save_data(state.data_path(), &data)?;
+    println!("Deleted task #{id}");
+    Ok(())
 }
 
 fn save_data(data_path: &str, data: &Project) -> Result<(), &'static str> {
