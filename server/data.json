@@ -1,0 +1,63 @@
+{
+  "statuses": [
+    {
+      "id": "todo",
+      "title": "Todo"
+    },
+    {
+      "id": "in-progress",
+      "title": "In Progress"
+    },
+    {
+      "id": "completed",
+      "title": "Completed"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "1",
+      "text": "Create project wireframes",
+      "statusId": "todo"
+    },
+    {
+      "id": "2",
+      "text": "Research competitor products",
+      "statusId": "todo"
+    },
+    {
+      "id": "3",
+      "text": "Set up CI/CD pipeline",
+      "statusId": "todo"
+    },
+    {
+      "id": "4",
+      "text": "Build authentication flow",
+      "statusId": "in-progress"
+    },
+    {
+      "id": "5",
+      "text": "Implement drag-and-drop board",
+      "statusId": "in-progress"
+    },
+    {
+      "id": "6",
+      "text": "Write unit tests for API",
+      "statusId": "in-progress"
+    },
+    {
+      "id": "7",
+      "text": "Initialize repository",
+      "statusId": "completed"
+    },
+    {
+      "id": "8",
+      "text": "Configure TypeScript",
+      "statusId": "completed"
+    },
+    {
+      "id": "9",
+      "text": "Design database schema",
+      "statusId": "completed"
+    }
+  ]
+}
