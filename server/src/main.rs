@@ -1,12 +1,10 @@
-use axum::{
-    Json, Router,
-    extract::{Path, State},
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{delete, get, patch, post},
-};
-use serde::{Deserialize, Serialize};
-use std::{env, fs, sync::Arc};
+use prelude::*;
+use state::AppState;
+use std::{env, fs};
+
+mod prelude;
+mod state;
+mod task;
 
 #[tokio::main]
 async fn main() {
@@ -23,44 +21,15 @@ async fn main() {
         .route("/", get(|| async { "Hello, World!" }))
         .route("/api/project", get(get_project))
         .route("/api/project", post(save_project))
-        .route("/api/project/task", post(add_task))
-        .route("/api/project/task/{id}", delete(delete_task))
-        .route("/api/project/task/{id}", patch(update_task))
+        .route("/api/project/task", post(task::create_task))
+        .route("/api/project/task/{id}", delete(task::delete_task))
+        .route("/api/project/task/{id}", patch(task::update_task))
         .with_state(state);
 
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     println!("Listening on port {port}...");
     axum::serve(listener, app).await.unwrap();
-}
-
-#[derive(Clone)]
-struct AppState {
-    inner: Arc<AppStateInner>,
-}
-
-impl AppState {
-    fn new(data_path: String) -> Self {
-        Self {
-            inner: Arc::new(AppStateInner { data_path }),
-        }
-    }
-
-    fn data_path(&self) -> &str {
-        &self.inner.data_path
-    }
-}
-
-struct AppStateInner {
-    data_path: String,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-struct Task {
-    id: u32,
-    text: String,
-    status_id: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -72,7 +41,7 @@ struct Status {
 #[derive(Serialize, Deserialize)]
 struct Project {
     statuses: Vec<Status>,
-    tasks: Vec<Task>,
+    tasks: Vec<task::Task>,
 }
 
 async fn get_project(State(state): State<AppState>) -> Result<impl IntoResponse, String> {
@@ -86,59 +55,6 @@ async fn save_project(
 ) -> Result<(), String> {
     save_data(state.data_path(), &data)?;
     println!("Saved data");
-    Ok(())
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct AddTask {
-    text: String,
-    status_id: String,
-}
-
-async fn add_task(
-    State(state): State<AppState>,
-    Json(payload): Json<AddTask>,
-) -> Result<Json<Task>, String> {
-    let mut data = load_data(state.data_path())?;
-    let id = data.tasks.iter().map(|task| task.id).max().unwrap_or(0) + 1;
-    let new_task = Task {
-        id,
-        text: payload.text,
-        status_id: payload.status_id,
-    };
-    data.tasks.push(new_task.clone());
-    save_data(state.data_path(), &data)?;
-    Ok(Json(new_task))
-}
-
-#[derive(Serialize, Deserialize)]
-struct UpdateTask {
-    text: String,
-}
-
-async fn update_task(
-    State(state): State<AppState>,
-    Path(id): Path<u32>,
-    Json(payload): Json<UpdateTask>,
-) -> Result<Json<Task>, String> {
-    let mut data = load_data(state.data_path())?;
-    let task = data
-        .tasks
-        .iter_mut()
-        .find(|t| t.id == id)
-        .ok_or("task not found")?;
-    task.text = payload.text;
-    let task = task.clone();
-    save_data(state.data_path(), &data)?;
-    Ok(Json(task))
-}
-
-async fn delete_task(State(state): State<AppState>, Path(id): Path<u32>) -> Result<(), String> {
-    let mut data = load_data(state.data_path())?;
-    data.tasks.retain(|t| t.id != id);
-    save_data(state.data_path(), &data)?;
-    println!("Deleted task #{id}");
     Ok(())
 }
 
