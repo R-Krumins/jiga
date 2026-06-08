@@ -51,13 +51,17 @@ export default function TaskCard({ task }: TaskCardProps) {
   return (
     <div
       ref={ref}
-      className="bg-yellow-300 border p-2"
+      className="bg-fg rounded-2xl flex"
       onDoubleClick={() => {
         setDraft(task.text);
         setEditing(true);
       }}
     >
-      {task.text}
+      <div className="w-4 bg-blue-600 rounded-l-2xl"/>
+      <div className="inline-block pl-6 py-4">
+        {task.text}
+      </div>
+      
     </div>
   );
 }

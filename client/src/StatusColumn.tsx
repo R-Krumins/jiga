@@ -14,8 +14,8 @@ export default function StatusColumn(props: StatusColumnProps) {
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-2">{props.column.title}</h1>
-      <div ref={ref} className="border bg-gray-200 w-100 h-100">
+      <h1 className="text-3xl font-bold mb-5">{props.column.title}</h1>
+      <div ref={ref} className="bg-raised w-100 h-200 rounded-2xl pt-8 px-4 flex flex-col gap-4">
         {props.tasks.map((task) => (
           <TaskCard key={task.id} task={task} />
         ))}

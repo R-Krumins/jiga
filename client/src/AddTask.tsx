@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useProject } from "./ProjectContext";
+import { Plus } from "lucide-react";
 
 export default function AddTask() {
   const [taskName, setTaskName] = useState("");
@@ -12,18 +13,19 @@ export default function AddTask() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2 className="font-bold text-lg">Add Task</h2>
+    <form onSubmit={handleSubmit} className="flex items-center">
       <input
         type="text"
         name="add-task"
         id="add-task-field"
-        className="border mr-2 px-2 py-1"
-        placeholder="new task"
+        placeholder="New task..."
         value={taskName}
         onChange={(e) => setTaskName(e.target.value)}
+        className="bg-raised rounded-xl mr-2 px-4 py-2.5 w-80"
       />
-      <button className="border px-3 py-1 bg-gray-200">+</button>
+      <button className="px-3 py-2 bg-accent rounded-xl">
+        <Plus />
+      </button>
     </form>
   );
 }
