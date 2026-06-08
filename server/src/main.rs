@@ -21,9 +21,9 @@ async fn main() {
         .route("/", get(|| async { "Hello, World!" }))
         .route("/api/project", get(get_project))
         .route("/api/project", post(save_project))
-        .route("/api/project/task", post(task::create_task))
-        .route("/api/project/task/{id}", delete(task::delete_task))
-        .route("/api/project/task/{id}", patch(task::update_task))
+        .route("/api/project/task", post(task::create))
+        .route("/api/project/task/{id}", delete(task::delete))
+        .route("/api/project/task/{id}", patch(task::update))
         .with_state(state);
 
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
