@@ -1,12 +1,10 @@
-use axum::{
-    Router,
-    routing::{delete, get, patch, post},
-};
+use axum::{Router, routing::get};
 use state::AppState;
 use std::{env, fs};
 
-mod project;
+mod error;
 mod state;
+mod task;
 
 #[tokio::main]
 async fn main() {
@@ -21,13 +19,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .route("/api/project", get(project::get_project))
-        .route("/api/project/task", post(project::create_task))
-        .route("/api/project/task/{id}", delete(project::delete_task))
-        .route(
-            "/api/project/task/{id}/move/{status_id}",
-            patch(project::move_task),
-        )
+        .nest("/api/project/task", task::api::router().await)
         .with_state(state);
 
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
