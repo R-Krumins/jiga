@@ -7,7 +7,7 @@ use axum::extract::Path;
 use axum::routing::{delete, patch, post, put};
 use axum::{Json, extract::State};
 
-pub async fn router() -> Router<AppState> {
+pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", post(create_task))
         .route("/", put(update_task))

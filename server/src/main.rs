@@ -2,29 +2,42 @@ use axum::{Router, routing::get};
 use state::AppState;
 use std::{env, fs};
 
+mod config;
 mod error;
 mod state;
-mod task;
+
+mod project {
+    pub mod api;
+    pub mod model;
+}
+
+mod status {
+    pub mod model;
+    pub mod repo;
+}
+
+mod task {
+    pub mod api;
+    pub mod model;
+    pub mod repo;
+}
 
 #[tokio::main]
 async fn main() {
     load_dotenv();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL");
-    let port: u16 = std::env::var("PORT")
-        .map(|v| v.parse::<u16>().expect("PORT must be a valid u16"))
-        .unwrap_or(3000);
-
-    let state = AppState::new(&database_url).await;
+    let cfg = config::Config::new();
+    let state = AppState::new(&cfg.database_url).await;
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .nest("/api/project/task", task::api::router().await)
+        .nest("/api/project", project::api::router())
+        .nest("/api/project/task", task::api::router())
         .with_state(state);
 
-    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
+    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], cfg.port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    println!("Listening on port {port}...");
+    println!("Listening on port {}...", cfg.port);
     axum::serve(listener, app).await.unwrap();
 }
 

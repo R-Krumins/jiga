@@ -24,7 +24,7 @@ export default function TaskCard({ task }: TaskCardProps) {
 
   const save = () => {
     if (draft.trim() && draft !== task.text) {
-      updateTask(task.id, draft.trim());
+      updateTask({ ...task, text: draft });
     } else {
       setDraft(task.text);
     }
@@ -57,11 +57,8 @@ export default function TaskCard({ task }: TaskCardProps) {
         setEditing(true);
       }}
     >
-      <div className="w-4 bg-blue-600 rounded-l-2xl"/>
-      <div className="inline-block pl-6 py-4">
-        {task.text}
-      </div>
-      
+      <div className="w-4 bg-blue-600 rounded-l-2xl" />
+      <div className="inline-block pl-6 py-4">{task.text}</div>
     </div>
   );
 }

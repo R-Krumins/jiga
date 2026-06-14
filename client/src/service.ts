@@ -1,41 +1,43 @@
 import type { Project, Task } from "./types";
 
-export async function getProject(): Promise<Project> {
-  const res = await fetch("/api/project");
-  if (!res.ok) throw new Error("Could not fetch project");
-  return res.json();
-}
+const projectService = {
+  getProject: async (): Promise<Project> => {
+    const res = await fetch("/api/project");
+    if (!res.ok) throw new Error("Could not fetch project");
+    return res.json();
+  },
 
-export async function saveProject(project: Project) {
-  const res = await post("/api/project", project);
-  if (!res.ok) throw new Error("Could not save project");
-}
+  deleteTask: async (id: number): Promise<void> => {
+    const res = await fetch(`/api/project/task/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Could not delete task");
+  },
 
-export async function deleteTask(id: number): Promise<void> {
-  const res = await fetch(`/api/project/task/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Could not delete task");
-}
+  updateTask: async (task: Task): Promise<Task> => {
+    const res = await put("/api/project/task", task);
+    if (!res.ok) throw new Error("Could not update task");
+    return res.json();
+  },
 
-export async function updateTask(
-  id: number,
-  fields: { text: string },
-): Promise<Task> {
-  const res = await fetch(`/api/project/task/${id}`, {
-    method: "PATCH",
+  addTask: async (task: { text: string; statusId: string }): Promise<Task> => {
+    const res = await post("/api/project/task", task);
+    if (!res.ok) throw new Error("Could not add task");
+    return res.json();
+  },
+
+  moveTask: async (task_id: number, status_id: string) => {
+    const res = await fetch(`/api/project/task/${task_id}/move/${status_id}`, {
+      method: "PATCH",
+    });
+    if (!res.ok) throw new Error("Could not update task status");
+  },
+};
+
+function put<T>(url: string, body: T) {
+  return fetch(url, {
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(fields),
+    body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error("Could not update task");
-  return res.json();
-}
-
-export async function addTask(task: {
-  text: string;
-  statusId: string;
-}): Promise<Task> {
-  const res = await post("/api/project/task", task);
-  if (!res.ok) throw new Error("Could not add task");
-  return res.json();
 }
 
 function post<T>(url: string, body: T) {
@@ -45,3 +47,5 @@ function post<T>(url: string, body: T) {
     body: JSON.stringify(body),
   });
 }
+
+export default projectService;

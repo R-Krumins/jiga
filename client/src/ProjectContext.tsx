@@ -1,19 +1,19 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Project } from "./types";
 import {
-  addTask as addTaskService,
-  deleteTask as deleteTaskService,
-  getProject,
-  saveProject,
-  updateTask as updateTaskService,
-} from "./service";
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import type { Project, Task } from "./types";
+import projectService from "./service";
 
 type ProjectContextType = {
   project: Project;
   addTask: (text: string, statusId: string) => Promise<void>;
   moveTask: (taskId: number, newStatusId: string) => void;
   deleteTask: (taskId: number) => Promise<void>;
-  updateTask: (taskId: number, text: string) => Promise<void>;
+  updateTask: (task: Task) => Promise<void>;
 };
 
 const ProjectContext = createContext<ProjectContextType | null>(null);
@@ -22,13 +22,13 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [project, setProject] = useState<Project | null>(null);
 
   useEffect(() => {
-    getProject().then(setProject);
+    projectService.getProject().then(setProject);
   }, []);
 
   if (!project) return <div>Loading...</div>;
 
   const addTask = async (text: string, statusId: string) => {
-    const newTask = await addTaskService({ text, statusId });
+    const newTask = await projectService.addTask({ text, statusId });
     setProject((prev) => {
       if (!prev) return prev;
       return { ...prev, tasks: [...prev.tasks, newTask] };
@@ -41,32 +41,34 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       const updatedTasks = prev.tasks.map((t) =>
         t.id === taskId ? { ...t, statusId: newStatusId } : t,
       );
-      saveProject({ statuses: prev.statuses, tasks: updatedTasks });
+      projectService.moveTask(taskId, newStatusId);
       return { ...prev, tasks: updatedTasks };
     });
   };
 
   const deleteTask = async (taskId: number) => {
-    await deleteTaskService(taskId);
+    await projectService.deleteTask(taskId);
     setProject((prev) => {
       if (!prev) return prev;
       return { ...prev, tasks: prev.tasks.filter((t) => t.id !== taskId) };
     });
   };
 
-  const updateTask = async (taskId: number, text: string) => {
-    const updated = await updateTaskService(taskId, { text });
+  const updateTask = async (task: Task) => {
+    const updated = await projectService.updateTask(task);
     setProject((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        tasks: prev.tasks.map((t) => (t.id === taskId ? updated : t)),
+        tasks: prev.tasks.map((t) => (t.id === task.id ? updated : t)),
       };
     });
   };
 
   return (
-    <ProjectContext.Provider value={{ project, addTask, moveTask, deleteTask, updateTask }}>
+    <ProjectContext.Provider
+      value={{ project, addTask, moveTask, deleteTask, updateTask }}
+    >
       {children}
     </ProjectContext.Provider>
   );

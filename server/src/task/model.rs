@@ -11,7 +11,6 @@ pub struct Task {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewTask {
-    pub id: i64,
     pub text: String,
     pub status_id: String,
 }

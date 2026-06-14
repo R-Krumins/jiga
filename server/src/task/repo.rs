@@ -3,6 +3,13 @@ use sqlx::SqlitePool;
 
 use crate::task::model::{NewTask, Task};
 
+pub async fn get_tasks(db: &SqlitePool) -> anyhow::Result<Vec<Task>> {
+    sqlx::query_as!(Task, "SELECT * FROM tasks")
+        .fetch_all(db)
+        .await
+        .context("could not retrieve tasks")
+}
+
 pub async fn create_task(db: &SqlitePool, new_task: &NewTask) -> anyhow::Result<i64> {
     sqlx::query!(
         "INSERT INTO tasks (text, status_id) VALUES (?1, ?2)",
