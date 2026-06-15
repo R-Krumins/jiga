@@ -2,3 +2,5 @@
 .env
 data.json
 database
+database-shm
+database-wal

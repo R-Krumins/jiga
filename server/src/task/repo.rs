@@ -1,7 +1,7 @@
 use anyhow::Context;
 use sqlx::SqlitePool;
 
-use crate::task::model::{NewTask, Task};
+use crate::task::model::Task;
 
 pub async fn get_tasks(db: &SqlitePool) -> anyhow::Result<Vec<Task>> {
     sqlx::query_as!(Task, "SELECT * FROM tasks")
@@ -10,11 +10,12 @@ pub async fn get_tasks(db: &SqlitePool) -> anyhow::Result<Vec<Task>> {
         .context("could not retrieve tasks")
 }
 
-pub async fn create_task(db: &SqlitePool, new_task: &NewTask) -> anyhow::Result<i64> {
+pub async fn create_task(db: &SqlitePool, new_task: &Task) -> anyhow::Result<i64> {
     sqlx::query!(
-        "INSERT INTO tasks (text, status_id) VALUES (?1, ?2)",
+        "INSERT INTO tasks (uuid, text, list_uuid) VALUES (?1, ?2, ?3)",
+        new_task.uuid,
         new_task.text,
-        new_task.status_id
+        new_task.list_uuid
     )
     .execute(db)
     .await
@@ -22,8 +23,8 @@ pub async fn create_task(db: &SqlitePool, new_task: &NewTask) -> anyhow::Result<
     .context("could not save task")
 }
 
-pub async fn delete_task(db: &SqlitePool, id: i64) -> anyhow::Result<()> {
-    sqlx::query!("DELETE FROM tasks WHERE id = ?1", id)
+pub async fn delete_task(db: &SqlitePool, uuid: &str) -> anyhow::Result<()> {
+    sqlx::query!("DELETE FROM tasks WHERE uuid = ?1", uuid)
         .execute(db)
         .await
         .context("could not delete task")?;
@@ -32,10 +33,10 @@ pub async fn delete_task(db: &SqlitePool, id: i64) -> anyhow::Result<()> {
 
 pub async fn update_task(db: &SqlitePool, task: &Task) -> anyhow::Result<()> {
     sqlx::query!(
-        "UPDATE tasks SET text = ?1, status_id = ?2 WHERE id = ?3",
+        "UPDATE tasks SET text = ?1, list_uuid = ?2 WHERE uuid = ?3",
         task.text,
-        task.status_id,
-        task.id,
+        task.list_uuid,
+        task.uuid,
     )
     .execute(db)
     .await
@@ -43,11 +44,11 @@ pub async fn update_task(db: &SqlitePool, task: &Task) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub async fn move_task(db: &SqlitePool, task_id: i64, status_id: &str) -> anyhow::Result<()> {
+pub async fn move_task(db: &SqlitePool, task_uuid: &str, list_uuid: &str) -> anyhow::Result<()> {
     sqlx::query!(
-        "UPDATE tasks SET status_id = ? WHERE id = ?",
-        status_id,
-        task_id
+        "UPDATE tasks SET list_uuid = ? WHERE uuid = ?",
+        list_uuid,
+        task_uuid
     )
     .execute(db)
     .await

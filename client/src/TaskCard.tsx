@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/react";
-import { useProject } from "./ProjectContext";
 import type { Task } from "./types";
 
 type TaskCardProps = {
@@ -11,10 +10,10 @@ export default function TaskCard({ task }: TaskCardProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(task.text);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { updateTask } = useProject();
+  //const { updateTask } = useProject();
 
   const { ref } = useDraggable({
-    id: task.id,
+    id: task.uuid,
     disabled: editing,
   });
 
@@ -24,7 +23,7 @@ export default function TaskCard({ task }: TaskCardProps) {
 
   const save = () => {
     if (draft.trim() && draft !== task.text) {
-      updateTask({ ...task, text: draft });
+      //updateTask({ ...task, text: draft });
     } else {
       setDraft(task.text);
     }

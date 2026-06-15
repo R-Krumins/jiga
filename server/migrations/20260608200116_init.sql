@@ -1,11 +1,11 @@
-create table statuses (
-    id text primary key not null,
+create table lists (
+    uuid text primary key not null,
     title text not null
 );
 
 create table tasks (
-    id integer primary key,
+    uuid text primary key not null,
     text text not null,
-    status_id text not null,
-    foreign key (status_id) references statuses(id)
+    list_uuid text not null,
+    foreign key (list_uuid) references lists(uuid)
 );

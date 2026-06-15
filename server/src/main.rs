@@ -6,12 +6,8 @@ mod config;
 mod error;
 mod state;
 
-mod project {
+mod list {
     pub mod api;
-    pub mod model;
-}
-
-mod status {
     pub mod model;
     pub mod repo;
 }
@@ -31,8 +27,8 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .nest("/api/project", project::api::router())
         .nest("/api/project/task", task::api::router())
+        .nest("/api/project/list", list::api::router())
         .with_state(state);
 
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], cfg.port));

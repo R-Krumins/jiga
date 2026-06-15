@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-pub struct Status {
-    pub id: String,
+pub struct List {
+    pub uuid: String,
     pub title: String,
 }

@@ -1,15 +1,10 @@
 export type Task = {
-  id: number;
+  uuid: string;
   text: string;
-  statusId: string;
+  listUuid: string;
 };
 
-export type Status = {
+export type List = {
+  uuid: string;
   title: string;
-  id: string;
-};
-
-export type Project = {
-  statuses: Status[];
-  tasks: Task[];
 };
