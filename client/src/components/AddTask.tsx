@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { Task } from "./types";
-import api from "./api";
-import { listsQueryOpt } from "./query";
+import type { Task } from "../types";
+import api from "../api";
+import { listsQueryOpt } from "../query";
 
 export default function AddTask() {
   const [newTaskName, setNewTaskName] = useState("");

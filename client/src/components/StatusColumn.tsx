@@ -1,6 +1,6 @@
 import { useDroppable } from "@dnd-kit/react";
-import type { List, Task } from "./types";
-import TaskCard from "./TaskCard";
+import type { List, Task } from "../types";
+import TaskCard from "@components/TaskCard";
 
 type StatusColumnProps = {
   column: List;

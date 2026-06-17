@@ -1,11 +1,11 @@
 import { DragDropProvider } from "@dnd-kit/react";
-import StatusColumn from "./StatusColumn";
-import Trash from "./Trash";
+import StatusColumn from "@components/StatusColumn";
+import Trash from "@components/Trash";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import api from "./api";
-import type { Task } from "./types";
-import { listsQueryOpt } from "./query";
+import api from "../api";
+import type { Task } from "../types";
+import { listsQueryOpt } from "../query";
 
 type MoveTask = {
   taskUuid: string;

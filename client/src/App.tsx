@@ -1,5 +1,5 @@
-import KanbanBoard from "./KanbanBoard";
-import AddTask from "./AddTask";
+import KanbanBoard from "@components/KanbanBoard";
+import AddTask from "@components/AddTask";
 
 export default function App() {
   return (

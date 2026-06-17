@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/react";
-import type { Task } from "./types";
+import type { Task } from "../types";
 
 type TaskCardProps = {
   task: Task;
