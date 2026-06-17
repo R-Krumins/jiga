@@ -19,7 +19,7 @@ async function request<TResponse>(
 
   const contentLength = res.headers.get("content-length");
   if (contentLength === "0") {
-    return;
+    return undefined as TResponse;
   }
 
   return res.json();
@@ -28,11 +28,11 @@ async function request<TResponse>(
 const api = {
   get: <T>(url: string) => request<T>("GET", url),
 
-  post: <T>(url: string, body: any) => request<T>("POST", url, body),
+  post: <T>(url: string, body: unknown) => request<T>("POST", url, body),
 
-  put: <T>(url: string, body: any) => request<T>("PUT", url, body),
+  put: <T>(url: string, body: unknown) => request<T>("PUT", url, body),
 
-  patch: <T>(url: string, body?: any) => request<T>("PATCH", url, body),
+  patch: <T>(url: string, body?: unknown) => request<T>("PATCH", url, body),
 
   delete: <T>(url: string) => request<T>("DELETE", url),
 };
