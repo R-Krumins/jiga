@@ -1,7 +1,8 @@
 import {
   ChevronDown as DownArrow,
-  Plus as PlusIcon,
+  Plus as AddIcon,
   Search as SearchIcon,
+  Pencil as EditIcon,
 } from "lucide-react";
 import { Dialog, Popover } from "radix-ui";
 import { useState } from "react";
@@ -28,9 +29,12 @@ export default function ProjectManager() {
           <Popover.Content align="start">
             <div className="w-60 mt-4 px-2 py-2 rounded-lg bg-raised">
               <SelectProject />
-              <Dialog.Trigger>
-                <NewProjBtn />
-              </Dialog.Trigger>
+              <div className="flex flex-col gap-2 mt-4">
+                <Dialog.Trigger>
+                  <NewProjBtn />
+                </Dialog.Trigger>
+                <EditProjBtn />
+              </div>
             </div>
           </Popover.Content>
         </Popover.Portal>
@@ -60,8 +64,17 @@ function SelectProjBtn(props: { text: string; arrowUp: boolean }) {
 function NewProjBtn() {
   return (
     <button className="flex gap-1 items-center text-text-light/70">
-      <PlusIcon className="size-5" />
-      <p className="text-sm">New Project</p>
+      <AddIcon className="size-5" />
+      <p className="text-sm">New</p>
+    </button>
+  );
+}
+
+function EditProjBtn() {
+  return (
+    <button className="flex gap-1 items-center text-text-light/70">
+      <EditIcon className="size-4" />
+      <p className="text-sm ml-1">Edit Current</p>
     </button>
   );
 }
