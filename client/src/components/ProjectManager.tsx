@@ -9,8 +9,10 @@ import { useState } from "react";
 import clsx from "clsx";
 import CreateProject from "./CreateProject";
 import SelectProject from "./SelectProject";
+import { useProject } from "../projectContext";
 
 export default function ProjectManager() {
+  const { currentProject } = useProject();
   const [selectProjOpen, setSelectProjOpen] = useState(false);
   const [createProjOpen, setCreateProjOpen] = useState(false);
 
@@ -23,12 +25,15 @@ export default function ProjectManager() {
     <Dialog.Root open={createProjOpen} onOpenChange={onOpenCreateProjChange}>
       <Popover.Root open={selectProjOpen} onOpenChange={setSelectProjOpen}>
         <Popover.Trigger>
-          <SelectProjBtn arrowUp={selectProjOpen} text="Finyahu" />
+          <SelectProjBtn
+            arrowUp={selectProjOpen}
+            text={currentProject?.title ?? "Select Project"}
+          />
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content align="start">
             <div className="w-60 mt-4 px-2 py-2 rounded-lg bg-raised">
-              <SelectProject />
+              <SelectProject onSelectProject={() => setSelectProjOpen(false)} />
               <div className="flex flex-col gap-2 mt-4">
                 <Dialog.Trigger>
                   <NewProjBtn />
