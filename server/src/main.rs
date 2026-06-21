@@ -6,17 +6,9 @@ mod config;
 mod error;
 mod state;
 
-mod list {
-    pub mod api;
-    pub mod model;
-    pub mod repo;
-}
-
-mod task {
-    pub mod api;
-    pub mod model;
-    pub mod repo;
-}
+mod list;
+mod project;
+mod task;
 
 #[tokio::main]
 async fn main() {
@@ -27,8 +19,9 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .nest("/api/project/task", task::api::router())
-        .nest("/api/project/list", list::api::router())
+        .nest("/api/project", project::router())
+        .nest("/api/project/task", task::router())
+        .nest("/api/project/list", list::router())
         .with_state(state);
 
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], cfg.port));

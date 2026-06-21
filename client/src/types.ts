@@ -6,6 +6,12 @@ export type Task = {
 
 export type List = {
   uuid: string;
-  projectUuid: string;
   title: string;
+};
+
+export type Project = {
+  uuid: string;
+  title: string;
+  lists: List[];
+  tasks: Task[];
 };

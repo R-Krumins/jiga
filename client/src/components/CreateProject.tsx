@@ -1,55 +1,97 @@
 import { useSortable } from "@dnd-kit/react/sortable";
+import { useMutation } from "@tanstack/react-query";
 import { GripVertical, Plus, X as CloseIcon } from "lucide-react";
 import { useState } from "react";
+import api from "../api";
+import type { Project } from "../types";
 
 type ListItem = {
   id: string;
   index: number;
-  name: string;
   editing: boolean;
+  title: string;
 };
 
-const id = () => crypto.randomUUID();
+type NewProject = {
+  uuid: string;
+  title: string;
+};
+
+const uuid = () => crypto.randomUUID();
 
 export default function CreateProject() {
+  const { mutate: createProject } = useMutation({
+    mutationFn: async (newProj: Project) => api.post("/api/project", newProj),
+  });
+
+  const [project, setProject] = useState<NewProject>({
+    uuid: uuid(),
+    title: "",
+  });
+
   const [listItems, setListItems] = useState<ListItem[]>([
-    { id: id(), index: 0, name: "Todo", editing: false },
-    { id: id(), index: 1, name: "In Progress", editing: false },
-    { id: id(), index: 2, name: "Done", editing: false },
+    { id: uuid(), index: 0, title: "Todo", editing: false },
+    { id: uuid(), index: 1, title: "In Progress", editing: false },
+    { id: uuid(), index: 2, title: "Done", editing: false },
   ]);
+
+  const canCreateProject =
+    project.title.length !== 0 &&
+    listItems.every((l) => l.title.trim().length !== 0);
 
   const handleNewList = () => {
     setListItems((prev) => [
       ...prev,
       {
-        id: id(),
-        index: prev.length,
-        name: "",
+        id: uuid(),
+        index: Math.max(...prev.map((l) => l.index)) + 1,
+        title: "",
         editing: true,
       },
     ]);
   };
 
-  const handleSetEditing = (id: string, edit: boolean) => {
+  const handleSetListEditing = (id: string, edit: boolean) => {
     setListItems((prev) =>
       prev.map((p) => (p.id === id ? { ...p, editing: edit } : p)),
     );
   };
 
-  const handleSetName = (id: string, newName: string) => {
+  const handleSetListTitle = (id: string, newTitle: string) => {
     setListItems((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, name: newName } : p)),
+      prev.map((p) => (p.id === id ? { ...p, title: newTitle } : p)),
     );
   };
 
-  const handleDelete = (id: string) => {
+  const handleDeleteList = (id: string) => {
     setListItems((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleCreateProject = () => {
+    const newProject: Project = {
+      uuid: project.uuid,
+      title: project.title,
+      tasks: [],
+      lists: listItems.map((l) => ({
+        uuid: l.id,
+        title: l.title.trim(),
+      })),
+    };
+
+    createProject(newProject);
   };
 
   return (
     <div className="w-160 min-h-120 border bg-raised rounded-lg px-4 py-4">
       <h1>Project Name</h1>
-      <input type="text" className="bg-bg p-2 rounded-xl mt-4" />
+      <input
+        type="text"
+        value={project.title}
+        onChange={(e) =>
+          setProject((prev) => ({ ...prev, title: e.target.value.trim() }))
+        }
+        className="bg-bg p-2 rounded-xl mt-4"
+      />
       <h1 className="pt-4">Lists</h1>
       <div className="mt-4 border rounded-xl p-2">
         <ul>
@@ -57,9 +99,9 @@ export default function CreateProject() {
             <ListItem
               key={l.id}
               {...l}
-              setEditing={(editing) => handleSetEditing(l.id, editing)}
-              setName={(newName) => handleSetName(l.id, newName)}
-              delete={() => handleDelete(l.id)}
+              setEditing={(editing) => handleSetListEditing(l.id, editing)}
+              setName={(newName) => handleSetListTitle(l.id, newName)}
+              delete={() => handleDeleteList(l.id)}
             />
           ))}
         </ul>
@@ -69,7 +111,13 @@ export default function CreateProject() {
       </div>
 
       <div className="flex justify-end mt-8">
-        <button className="bg-bg rounded-xl py-3 px-5">Create</button>
+        <button
+          disabled={!canCreateProject}
+          className="bg-bg rounded-xl py-3 px-5"
+          onClick={handleCreateProject}
+        >
+          Create
+        </button>
       </div>
     </div>
   );
@@ -84,7 +132,7 @@ type ListItemProps = ListItem & {
 function ListItem({
   id,
   index,
-  name,
+  title,
   editing,
   setEditing,
   setName: onNameChange,
@@ -99,7 +147,7 @@ function ListItem({
     >
       {editing ? (
         <input
-          value={name}
+          value={title}
           placeholder="List name..."
           onChange={(e) => onNameChange(e.target.value)}
           onBlur={() => setEditing(false)}
@@ -114,7 +162,7 @@ function ListItem({
         />
       ) : (
         <>
-          <p onDoubleClick={() => setEditing(true)}>{name}</p>
+          <p onDoubleClick={() => setEditing(true)}>{title}</p>
 
           <div className="flex gap-2">
             <button ref={handleRef}>
