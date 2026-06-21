@@ -4,8 +4,8 @@ import Trash from "@components/Trash";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "../api";
-import type { Task } from "../types";
-import { listsQueryOpt } from "../query";
+import type { Project } from "../types";
+import { useProject } from "../projectContext";
 
 type MoveTask = {
   taskUuid: string;
@@ -13,27 +13,39 @@ type MoveTask = {
 };
 
 export default function KanbanBoard() {
-  const taskQuery = useQuery({
-    queryKey: ["tasks"],
-    queryFn: () => api.get<Task[]>("/api/project/task"),
+  const { currentProject } = useProject();
+  const projectQueryKey = ["project", currentProject?.uuid] as const;
+
+  const projectQuery = useQuery({
+    queryKey: projectQueryKey,
+    queryFn: () => api.get<Project>(`/api/project/${currentProject!.uuid}`),
+    enabled: currentProject !== null,
   });
 
   const deleteTask = useMutation({
     mutationFn: (uuid: string) => api.delete(`/api/project/task/${uuid}`),
 
     onMutate: async (deletedTaskUuid, context) => {
-      await context.client.cancelQueries({ queryKey: ["tasks"] });
-      const snapshot = context.client.getQueryData<Task[]>(["tasks"]) ?? [];
-      context.client.setQueryData<Task[]>(
-        ["tasks"],
-        (prev) => prev?.filter((task) => task.uuid !== deletedTaskUuid) ?? [],
+      await context.client.cancelQueries({ queryKey: projectQueryKey });
+      const snapshot =
+        context.client.getQueryData<Project>(projectQueryKey) ?? null;
+      context.client.setQueryData<Project>(
+        projectQueryKey,
+        (prev) =>
+          prev && {
+            ...prev,
+            tasks: prev.tasks.filter((task) => task.uuid !== deletedTaskUuid),
+          },
       );
       return { snapshot };
     },
 
     onError: (_err, _vars, onMutateResult, context) => {
-      onMutateResult &&
-        context.client.setQueryData<Task[]>(["tasks"], onMutateResult.snapshot);
+      if (!onMutateResult?.snapshot) return;
+      context.client.setQueryData<Project>(
+        projectQueryKey,
+        onMutateResult.snapshot,
+      );
     },
   });
 
@@ -42,31 +54,47 @@ export default function KanbanBoard() {
       api.patch(`/api/project/task/${taskUuid}/move/${listUuid}`),
 
     onMutate: async ({ taskUuid, listUuid }, context) => {
-      await context.client.cancelQueries({ queryKey: ["tasks"] });
-      const snapshot = context.client.getQueryData<Task[]>(["tasks"]);
-      context.client.setQueryData<Task[]>(
-        ["tasks"],
+      await context.client.cancelQueries({ queryKey: projectQueryKey });
+      const snapshot = context.client.getQueryData<Project>(projectQueryKey);
+      context.client.setQueryData<Project>(
+        projectQueryKey,
         (prev) =>
-          prev?.map((task) =>
-            task.uuid === taskUuid ? { ...task, listUuid } : task,
-          ) ?? [],
+          prev && {
+            ...prev,
+            tasks: prev.tasks.map((task) =>
+              task.uuid === taskUuid ? { ...task, listUuid } : task,
+            ),
+          },
       );
       return { snapshot };
     },
 
     onError: (err, _vars, onMutateResult, context) => {
       if (!onMutateResult) return;
-      context.client.setQueryData<Task[]>(["tasks"], onMutateResult.snapshot);
+      context.client.setQueryData<Project>(
+        projectQueryKey,
+        onMutateResult.snapshot,
+      );
       console.error("Cannot move task", err);
     },
   });
 
-  const listQuery = useQuery(listsQueryOpt);
-
   const [expandTrash, setExpandTrash] = useState(false);
 
-  if (taskQuery.isPending || listQuery.isPending) {
+  if (currentProject === null) {
+    return (
+      <div className="flex justify-center text-text-light/70">
+        Select a project to view its board
+      </div>
+    );
+  }
+
+  if (projectQuery.isPending) {
     return <h1>Loading...</h1>;
+  }
+
+  if (projectQuery.isError) {
+    return <h1>Error loading project</h1>;
   }
 
   return (
@@ -95,11 +123,11 @@ export default function KanbanBoard() {
       }}
     >
       <div className="flex gap-8 justify-center mb-8">
-        {listQuery.data!.map((list) => (
+        {projectQuery.data.lists.map((list) => (
           <StatusColumn
             key={list.uuid}
             column={list}
-            tasks={taskQuery.data!.filter(
+            tasks={projectQuery.data.tasks.filter(
               (task) => task.listUuid === list.uuid,
             )}
           />
