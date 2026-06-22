@@ -1,6 +1,5 @@
 import { DragDropProvider } from "@dnd-kit/react";
 import StatusColumn from "@components/StatusColumn";
-import Trash from "@components/Trash";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "../api";
@@ -22,32 +21,32 @@ export default function KanbanBoard() {
     enabled: currentProject !== null,
   });
 
-  const deleteTask = useMutation({
-    mutationFn: (uuid: string) => api.delete(`/api/project/task/${uuid}`),
+  // const deleteTask = useMutation({
+  //   mutationFn: (uuid: string) => api.delete(`/api/project/task/${uuid}`),
 
-    onMutate: async (deletedTaskUuid, context) => {
-      await context.client.cancelQueries({ queryKey: projectQueryKey });
-      const snapshot =
-        context.client.getQueryData<Project>(projectQueryKey) ?? null;
-      context.client.setQueryData<Project>(
-        projectQueryKey,
-        (prev) =>
-          prev && {
-            ...prev,
-            tasks: prev.tasks.filter((task) => task.uuid !== deletedTaskUuid),
-          },
-      );
-      return { snapshot };
-    },
+  //   onMutate: async (deletedTaskUuid, context) => {
+  //     await context.client.cancelQueries({ queryKey: projectQueryKey });
+  //     const snapshot =
+  //       context.client.getQueryData<Project>(projectQueryKey) ?? null;
+  //     context.client.setQueryData<Project>(
+  //       projectQueryKey,
+  //       (prev) =>
+  //         prev && {
+  //           ...prev,
+  //           tasks: prev.tasks.filter((task) => task.uuid !== deletedTaskUuid),
+  //         },
+  //     );
+  //     return { snapshot };
+  //   },
 
-    onError: (_err, _vars, onMutateResult, context) => {
-      if (!onMutateResult?.snapshot) return;
-      context.client.setQueryData<Project>(
-        projectQueryKey,
-        onMutateResult.snapshot,
-      );
-    },
-  });
+  //   onError: (_err, _vars, onMutateResult, context) => {
+  //     if (!onMutateResult?.snapshot) return;
+  //     context.client.setQueryData<Project>(
+  //       projectQueryKey,
+  //       onMutateResult.snapshot,
+  //     );
+  //   },
+  // });
 
   const moveTask = useMutation({
     mutationFn: ({ taskUuid, listUuid }: MoveTask) =>
@@ -106,12 +105,6 @@ export default function KanbanBoard() {
         const taskUuid = event.operation.source?.id as string;
         const target = event.operation.target?.id as string;
 
-        if (target === "trash") {
-          deleteTask.mutate(taskUuid);
-          setExpandTrash(false);
-          return;
-        }
-
         moveTask.mutate({ taskUuid, listUuid: target });
       }}
       onDragOver={(event) => {
@@ -132,10 +125,6 @@ export default function KanbanBoard() {
             )}
           />
         ))}
-      </div>
-
-      <div className="flex justify-end">
-        <Trash expand={expandTrash} />
       </div>
     </DragDropProvider>
   );

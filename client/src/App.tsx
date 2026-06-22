@@ -7,9 +7,6 @@ export default function App() {
     <>
       <Header />
       <div className="px-8 pt-8">
-        <div className="mb-12 flex justify-center">
-          <AddTask />
-        </div>
         <KanbanBoard />
       </div>
     </>
