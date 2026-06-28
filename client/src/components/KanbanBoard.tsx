@@ -21,33 +21,6 @@ export default function KanbanBoard() {
     enabled: currentProject !== null,
   });
 
-  // const deleteTask = useMutation({
-  //   mutationFn: (uuid: string) => api.delete(`/api/project/task/${uuid}`),
-
-  //   onMutate: async (deletedTaskUuid, context) => {
-  //     await context.client.cancelQueries({ queryKey: projectQueryKey });
-  //     const snapshot =
-  //       context.client.getQueryData<Project>(projectQueryKey) ?? null;
-  //     context.client.setQueryData<Project>(
-  //       projectQueryKey,
-  //       (prev) =>
-  //         prev && {
-  //           ...prev,
-  //           tasks: prev.tasks.filter((task) => task.uuid !== deletedTaskUuid),
-  //         },
-  //     );
-  //     return { snapshot };
-  //   },
-
-  //   onError: (_err, _vars, onMutateResult, context) => {
-  //     if (!onMutateResult?.snapshot) return;
-  //     context.client.setQueryData<Project>(
-  //       projectQueryKey,
-  //       onMutateResult.snapshot,
-  //     );
-  //   },
-  // });
-
   const moveTask = useMutation({
     mutationFn: ({ taskUuid, listUuid }: MoveTask) =>
       api.patch(`/api/project/task/${taskUuid}/move/${listUuid}`),
